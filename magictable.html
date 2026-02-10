@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Magic Square Generator</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #0f172a;
+        color: #e5e7eb;
+        text-align: center;
+        padding: 30px;
+    }
+
+    h1 {
+        color: #38bdf8;
+    }
+
+    input, button {
+        padding: 10px;
+        font-size: 16px;
+        margin: 10px;
+        border-radius: 5px;
+        border: none;
+    }
+
+    button {
+        background: #22c55e;
+        color: black;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #16a34a;
+    }
+
+    .magic-sum {
+        margin-top: 20px;
+        font-size: 20px;
+        color: #facc15;
+    }
+
+    table {
+        margin: 30px auto;
+        border-collapse: collapse;
+        box-shadow: 0 0 20px rgba(56,189,248,0.4);
+    }
+
+    td {
+        border: 2px solid #38bdf8;
+        padding: 12px;
+        min-width: 50px;
+        font-size: 18px;
+        background: #020617;
+        color: #22c55e;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>Magic Square Generator</h1>
+
+<input type="number" id="size" placeholder="Enter size (n ≥ 3)">
+<button onclick="generate()">Generate</button>
+
+<div class="magic-sum" id="sum"></div>
+<div id="output"></div>
+
+<script>
+function generate() {
+    const n = parseInt(document.getElementById("size").value);
+    if (n < 3) {
+        alert("Magic square not possible for n < 3");
+        return;
+    }
+
+    let magic;
+    if (n % 2 === 1) {
+        magic = oddMagicSquare(n);
+    } else if (n % 4 === 0) {
+        magic = doublyEvenMagicSquare(n);
+    } else {
+        magic = singlyEvenMagicSquare(n);
+    }
+
+    display(magic);
+}
+
+// ---------- ODD ----------
+function oddMagicSquare(n) {
+    let m = Array.from({length: n}, () => Array(n).fill(0));
+    let r = 0, c = Math.floor(n / 2);
+
+    for (let num = 1; num <= n * n; num++) {
+        m[r][c] = num;
+        let nr = (r - 1 + n) % n;
+        let nc = (c + 1) % n;
+
+        if (m[nr][nc] !== 0)
+            r = (r + 1) % n;
+        else {
+            r = nr;
+            c = nc;
+        }
+    }
+    return m;
+}
+
+// ---------- DOUBLY EVEN ----------
+function doublyEvenMagicSquare(n) {
+    let m = [];
+    let num = 1;
+
+    for (let i = 0; i < n; i++) {
+        m[i] = [];
+        for (let j = 0; j < n; j++)
+            m[i][j] = num++;
+    }
+
+    let max = n * n + 1;
+    for (let i = 0; i < n; i++)
+        for (let j = 0; j < n; j++)
+            if ((i % 4 === j % 4) || ((i + j) % 4 === 3))
+                m[i][j] = max - m[i][j];
+
+    return m;
+}
+
+// ---------- SINGLY EVEN ----------
+function singlyEvenMagicSquare(n) {
+    let half = n / 2;
+    let sub = oddMagicSquare(half);
+    let size = half * half;
+    let m = Array.from({length: n}, () => Array(n).fill(0));
+
+    for (let i = 0; i < half; i++)
+        for (let j = 0; j < half; j++) {
+            let val = sub[i][j];
+            m[i][j] = val;
+            m[i][j + half] = val + 2 * size;
+            m[i + half][j] = val + 3 * size;
+            m[i + half][j + half] = val + size;
+        }
+
+    let k = (n - 2) / 4;
+
+    for (let i = 0; i < half; i++)
+        for (let j = 0; j < k; j++)
+            [m[i][j], m[i + half][j]] = [m[i + half][j], m[i][j]];
+
+    [m[k][0], m[k + half][0]] = [m[k + half][0], m[k][0]];
+
+    return m;
+}
+
+// ---------- DISPLAY ----------
+function display(magic) {
+    let n = magic.length;
+    let sum = n * (n * n + 1) / 2;
+    document.getElementById("sum").innerText = "Magic Sum = " + sum;
+
+    let html = "<table>";
+    for (let i = 0; i < n; i++) {
+        html += "<tr>";
+        for (let j = 0; j < n; j++) {
+            html += `<td>${magic[i][j]}</td>`;
+        }
+        html += "</tr>";
+    }
+    html += "</table>";
+
+    document.getElementById("output").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
